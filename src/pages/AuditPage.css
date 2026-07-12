@@ -1,0 +1,65 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.page-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.table-panel.audit-table {
+  background: white;
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 20px 45px rgba(15,23,42,0.04);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead th {
+  text-align: left;
+  color: #64748b;
+  padding: 0.9rem 0.7rem;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.data-table tbody td {
+  padding: 0.9rem 0.7rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.muted { color: #94a3b8; }
+
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: #f5f3ff;
+  color: #6b21a8;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0.5rem 0 0.5rem;
+  color: #94a3b8;
+}
+
+.pager-controls { display: flex; gap: 0.5rem; align-items: center; }
+.pager-controls button { background: #fff; border: 1px solid #e6eef2; padding: 0.4rem 0.6rem; border-radius: 8px; }
+.pager-page { font-weight: 700; }
+
+.button-primary { background: #0f766e; color: white; padding: 0.5rem 0.9rem; border-radius: 10px; border: none; font-weight: 700; }
+
+select { padding: 0.5rem; border-radius: 8px; border: 1px solid #e6eef2; }

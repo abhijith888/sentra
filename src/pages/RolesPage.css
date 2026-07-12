@@ -1,0 +1,147 @@
+.roles-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.roles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.roles-sub {
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.roles-body {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.roles-list-card {
+  width: 280px;
+  background: white;
+  border-radius: 14px;
+  padding: 0.75rem;
+  box-shadow: 0 20px 45px rgba(15,23,42,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.role-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.role-item:not(.active):hover {
+  background: #f8fafc;
+}
+
+.role-item.active {
+  border-left: 4px solid #0f766e;
+  background: #f1fbf9;
+}
+
+.role-name {
+  font-weight: 700;
+}
+
+.role-desc {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.role-count {
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.roles-panel {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 20px 45px rgba(15,23,42,0.04);
+}
+
+.roles-panel-header h2 {
+  margin: 0;
+}
+.roles-panel-desc {
+  color: #64748b;
+  margin-top: 6px;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.perm-group-title {
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.perm-group-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.perm-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #e6f5ef;
+  background: #ffffff;
+}
+
+.perm-item.granted {
+  background: #ecfdf5;
+  border-color: #bbf0d4;
+}
+
+.perm-item input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+}
+
+.perm-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.perm-label {
+  font-weight: 800;
+}
+
+.perm-hint {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.button-primary {
+  background: #0f766e;
+  color: white;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .roles-body { flex-direction: column; }
+  .roles-list-card { width: 100%; }
+}

@@ -1,0 +1,97 @@
+.layout-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f3f5f9;
+}
+
+.layout-sidebar {
+  width: 260px;
+  background: #112d37;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem;
+}
+
+.layout-brand {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 2rem;
+}
+
+.layout-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.layout-link {
+  display: block;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.layout-link:hover,
+.layout-link.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.layout-footer {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.layout-user {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.layout-avatar {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+}
+
+.layout-user-name {
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.layout-user-role {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+.layout-logout {
+  width: 100%;
+  background: #ef4444;
+  border: none;
+  color: white;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.layout-logout:hover {
+  background: #dc2626;
+}
+
+.layout-content {
+  flex: 1;
+  padding: 2rem 2.5rem;
+}
