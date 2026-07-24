@@ -16,17 +16,19 @@ Including another URLconf
 """
 
 
-from django.contrib import admin
-from django.urls import path, include
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from django.urls import path
+from .views import (
+    UserListCreateView,
+    RoleListCreateView,
+    RoleDetailView,
+    AuditLogListCreateView,
+    export_users_excel,
+)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    
-    # API v1 routes
-    path('api/v1/', include('api.urls')),
-    
-    # Swagger & OpenAPI Documentation
-    path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('users/', UserListCreateView.as_view(), name='user-list-create'),
+    path('users/export/', export_users_excel, name='export_users_excel'),
+    path('roles/', RoleListCreateView.as_view(), name='role-list-create'),
+    path('roles/<int:pk>/', RoleDetailView.as_view(), name='role-detail'),
+    path('audit-logs/', AuditLogListCreateView.as_view(), name='auditlog-list-create'),
 ]

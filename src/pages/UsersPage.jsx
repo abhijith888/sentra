@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-import * as XLSX from 'xlsx';
+import { useMemo, useState, useEffect } from 'react';
 import './UsersPage.css';
 
 const initialUsers = [
@@ -46,12 +45,34 @@ function UsersPage() {
   const [newRole, setNewRole] = useState('Viewer');
   const [users, setUsers] = useState(initialUsers);
 
+  // Load live users from Django API on mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://127.0.0.1:8000/api/v1/users/', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setUsers(data);
+          }
+        }
+      } catch (error) {
+        console.warn('Backend API offline or unreachable, using local mock data:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchesSearch =
         !search ||
-        user.name.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase());
+        user.name?.toLowerCase().includes(search.toLowerCase()) ||
+        user.email?.toLowerCase().includes(search.toLowerCase());
 
       const matchesRole = selectedRole === 'All roles' || user.role === selectedRole;
       const matchesStatus = selectedStatus === 'All statuses' || user.status === selectedStatus;
@@ -60,10 +81,11 @@ function UsersPage() {
     });
   }, [search, selectedRole, selectedStatus, users]);
 
-  const handleCreateUser = () => {
+  const handleCreateUser = async () => {
     if (!newFullName.trim() || !newEmail.trim()) return;
 
-    const newUser = {
+    const newUserPayload = {
+      username: newFullName.trim().toLowerCase().replace(/\s+/g, '_'),
       name: newFullName.trim(),
       email: newEmail.trim(),
       role: newRole,
@@ -71,7 +93,29 @@ function UsersPage() {
       lastLogin: 'Never'
     };
 
-    setUsers((prev) => [newUser, ...prev]);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://127.0.0.1:8000/api/v1/users/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(newUserPayload),
+      });
+
+      if (response.ok) {
+        const createdUser = await response.json();
+        setUsers((prev) => [createdUser, ...prev]);
+      } else {
+        // Fallback to local state if API returns error
+        setUsers((prev) => [newUserPayload, ...prev]);
+      }
+    } catch (error) {
+      console.warn('Backend reach failed during create user, adding locally:', error);
+      setUsers((prev) => [newUserPayload, ...prev]);
+    }
+
     setShowModal(false);
     setNewFullName('');
     setNewEmail('');
@@ -88,12 +132,30 @@ function UsersPage() {
     );
   };
 
-  const exportToExcel = () => {
-    const sheetData = filteredUsers.map((u) => ({ Name: u.name, Email: u.email, Role: u.role, Status: u.status, 'Last login': u.lastLogin }));
-    const ws = XLSX.utils.json_to_sheet(sheetData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Users');
-    XLSX.writeFile(wb, 'users.xlsx');
+  // Trigger Django REST Framework OpenPyXL export endpoint
+  const handleExportUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://127.0.0.1:8000/api/v1/users/export/', {
+        method: 'GET',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+
+      if (!response.ok) throw new Error(`Export failed with status ${response.status}`);
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'users_export.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('API export failed:', error);
+      alert('Failed to download export file from server.');
+    }
   };
 
   return (
@@ -127,8 +189,12 @@ function UsersPage() {
         </div>
 
         <div className="users-actions">
-          <button type="button" className="button-secondary" onClick={exportToExcel}>Export to Excel</button>
-          <button type="button" className="button-primary" onClick={() => setShowModal(true)}>+ Add user</button>
+          <button type="button" className="button-secondary" onClick={handleExportUsers}>
+            Export to Excel
+          </button>
+          <button type="button" className="button-primary" onClick={() => setShowModal(true)}>
+            + Add user
+          </button>
         </div>
       </div>
 
@@ -148,7 +214,7 @@ function UsersPage() {
               <tr key={user.email}>
                 <td>
                   <div className="user-cell">
-                    <div className="user-avatar">{user.name.split(' ').map((part) => part[0]).join('')}</div>
+                    <div className="user-avatar">{user.name ? user.name.split(' ').map((part) => part[0]).join('') : 'U'}</div>
                     <div className="user-details">
                       <div className="user-name">{user.name}</div>
                       <div className="user-email">{user.email}</div>
@@ -161,7 +227,7 @@ function UsersPage() {
                     {user.status}
                   </span>
                 </td>
-                <td>{user.lastLogin}</td>
+                <td>{user.lastLogin || 'Never'}</td>
                 <td>
                   <button className="action-btn action-edit" type="button">Edit</button>
                   <button
