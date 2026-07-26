@@ -14,11 +14,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
-
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
+
 from .views import (
+    RegisterView,
+    CustomTokenObtainPairView,
     UserListCreateView,
+    UserDetailView,
     RoleListCreateView,
     RoleDetailView,
     AuditLogListCreateView,
@@ -26,9 +29,20 @@ from .views import (
 )
 
 urlpatterns = [
+    # JWT Authentication & Registration Endpoints
+    path('register/', RegisterView.as_view(), name='register'),
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # User Endpoints (Specific string routes MUST come BEFORE dynamic <int:pk> routes)
     path('users/', UserListCreateView.as_view(), name='user-list-create'),
     path('users/export/', export_users_excel, name='export_users_excel'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+    
+    # Role Endpoints
     path('roles/', RoleListCreateView.as_view(), name='role-list-create'),
     path('roles/<int:pk>/', RoleDetailView.as_view(), name='role-detail'),
+    
+    # Audit Log Endpoints
     path('audit-logs/', AuditLogListCreateView.as_view(), name='auditlog-list-create'),
 ]
