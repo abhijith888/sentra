@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.models import Group
-from django.db import transaction
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -11,15 +10,27 @@ User = get_user_model()
 
 
 def _get_user_role(user):
-    """Returns 'Admin' if the user is a superuser, otherwise defaults to 'User'."""
+    """
+    Returns the role assigned via Django Groups first.
+    If no group is explicitly assigned, checks superuser status, 
+    otherwise safely defaults to 'Viewer'.
+    """
+    # Check assigned groups first
+    first_group = user.groups.first()
+    if first_group:
+        return first_group.name
+
+    # Fallback check for superuser
     if user.is_superuser:
         return 'Admin'
-    return 'User'
+
+    # Default fallback role for regular users
+    return 'Viewer'
 
 
 # --- User Serializer ---
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.CharField(required=False, allow_blank=True, default='User')
+    role = serializers.CharField(required=False, allow_blank=True, default='Viewer')
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
@@ -34,7 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        role_name = validated_data.pop('role', 'User')
+        role_name = validated_data.pop('role', 'Viewer')
         password = validated_data.pop('password', None)
         email = validated_data.get('email')
 
@@ -84,7 +95,7 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
 
-# --- Custom Token Serializer (Auto-creates missing users & handles login) ---
+# --- Custom Token Serializer (Strictly authenticates existing created users) ---
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     # Override default DRF/SimpleJWT field constraints so both can be optional in raw payload
     username = serializers.CharField(required=False, allow_blank=True)
@@ -103,43 +114,21 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         else:
             users = User.objects.filter(username__iexact=login_input)
 
+        # Account doesn't exist -> Reject authentication
+        if not users.exists():
+            raise serializers.ValidationError({"detail": "No account found with these credentials. Please create an account first."})
+
         authenticated_user = None
 
-        if not users.exists():
-            # Account doesn't exist -> Auto-provision a standard user account
-            with transaction.atomic():
-                email_val = login_input if '@' in login_input else f"{login_input}@example.com"
-                base_username = login_input.split('@')[0] if '@' in login_input else login_input
+        # Account exists -> Verify password across matching accounts
+        for candidate in users:
+            authenticated = authenticate(username=candidate.username, password=password)
+            if authenticated:
+                authenticated_user = authenticated
+                break
 
-                # Handle potential username collisions
-                username = base_username
-                counter = 1
-                while User.objects.filter(username__iexact=username).exists():
-                    username = f"{base_username}{counter}"
-                    counter += 1
-
-                user = User.objects.create_user(
-                    username=username,
-                    email=email_val,
-                    password=password,
-                    is_active=True
-                )
-
-                # Assign standard 'User' group role
-                user_group, _ = Group.objects.get_or_create(name='User')
-                user.groups.set([user_group])
-                
-                authenticated_user = user
-        else:
-            # Account exists -> Verify password across matching accounts
-            for candidate in users:
-                authenticated = authenticate(username=candidate.username, password=password)
-                if authenticated:
-                    authenticated_user = authenticated
-                    break
-
-            if authenticated_user is None:
-                raise serializers.ValidationError({"detail": "Invalid password."})
+        if authenticated_user is None:
+            raise serializers.ValidationError({"detail": "Invalid credentials."})
 
         if not authenticated_user.is_active:
             raise serializers.ValidationError({"detail": "User account is disabled."})
