@@ -59,11 +59,11 @@ DATABASES = {
     }
 }
 
-# 🔴 UPDATE 1: TEMPLATES-ൽ dist/ ഫോൾഡർ ചേർത്തത്
+# TEMPLATES Config (React index.html ഫയൽ എടുക്കാൻ)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'dist'],  # React index.html ഫോൾഡർ ഇവിടെയാണ്
+        'DIRS': [BASE_DIR / 'dist'],  # React index.html ഫോൾഡർ
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -112,9 +112,11 @@ CORS_ALLOWED_ORIGINS = [
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# 🔴 UPDATE 2: React Build ഫയലുകൾ കൈകാര്യം ചെയ്യാൻ ഇത് വേണം
+# 🔴 FIX 1: assets ഫോൾഡർ പ്രത്യേകം ചേർത്തു (JS, CSS ഫയലുകൾ കൃത്യമായി ലോഡ് ആകാൻ)
 STATICFILES_DIRS = [
     BASE_DIR / 'dist',
+    BASE_DIR / 'dist' / 'assets',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# 🔴 FIX 2: Manifest എറർ വരാതിരിക്കാൻ Storage മാറ്റിയത്
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
