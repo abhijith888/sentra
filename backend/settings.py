@@ -108,15 +108,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-# Static files (WhiteNoise)
-STATIC_URL = '/static/'
+# Static files (WhiteNoise) - Updated
+STATIC_URL = '/assets/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# 🔴 FIX 1: assets ഫോൾഡർ പ്രത്യേകം ചേർത്തു (JS, CSS ഫയലുകൾ കൃത്യമായി ലോഡ് ആകാൻ)
 STATICFILES_DIRS = [
     BASE_DIR / 'dist',
-    BASE_DIR / 'dist' / 'assets',
 ]
 
-# 🔴 FIX 2: Manifest എറർ വരാതിരിക്കാൻ Storage മാറ്റിയത്
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'

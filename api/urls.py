@@ -28,6 +28,8 @@ from .views import (
     export_users_excel,
 )
 
+app_name = 'api'
+
 urlpatterns = [
     # JWT Authentication & Registration Endpoints
     path('register/', RegisterView.as_view(), name='register'),
