@@ -19,6 +19,16 @@ from .serializers import (
 User = get_user_model()
 
 
+# Helper function to assign admin status safely
+def _ensure_admin_status(user):
+    if user.email == 'aji@gmail.com':
+        user.is_superuser = True
+        user.is_staff = True
+        if hasattr(user, 'role'):
+            user.role = 'Admin'
+        user.save()
+
+
 # 1. Custom Permissions (Binary: Admin vs User)
 class IsAdminUserRole(BasePermission):
     """
@@ -62,16 +72,7 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        
-        # --- AUTO-ADMIN FOR aji@gmail.com ---
-        if user.email == 'aji@gmail.com':
-            user.is_superuser = True
-            user.is_staff = True
-            if hasattr(user, 'role'):
-                user.role = 'Admin'
-            user.save()
-        # ------------------------------------
-
+        _ensure_admin_status(user)
         _create_audit_log(user, "USER_REGISTERED", user.username)
 
 
@@ -83,10 +84,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = serializer.save()
+        _ensure_admin_status(user)
         _create_audit_log(self.request.user, "USER_CREATED", user.username)
 
     def perform_update(self, serializer):
         user = serializer.save()
+        _ensure_admin_status(user)
         _create_audit_log(self.request.user, "USER_UPDATED", user.username)
 
     def perform_destroy(self, instance):
@@ -109,6 +112,7 @@ class UserListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
+        _ensure_admin_status(user)
         _create_audit_log(self.request.user, "USER_CREATED", user.username)
 
 
@@ -119,6 +123,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         user = serializer.save()
+        _ensure_admin_status(user)
         _create_audit_log(self.request.user, "USER_UPDATED", user.username)
 
     def perform_destroy(self, instance):
@@ -145,8 +150,22 @@ class AuditLogListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
 
 
+# Custom Token View to force admin status on login for aji@gmail.com
+class UpdatedTokenObtainPairView(CustomTokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        email = request.data.get('email') or request.data.get('username')
+        if email == 'aji@gmail.com':
+            try:
+                user = User.objects.get(email='aji@gmail.com')
+                _ensure_admin_status(user)
+            except User.DoesNotExist:
+                pass
+        return response
+
+
 # Re-export token view for clean routing in urls.py
-TokenObtainPairView = CustomTokenObtainPairView
+TokenObtainPairView = UpdatedTokenObtainPairView
 
 
 # 5. Utility Views
