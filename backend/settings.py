@@ -108,12 +108,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-# Static files (WhiteNoise) - Updated
+# Static files (WhiteNoise) - Updated Fix
 STATIC_URL = '/assets/'
+
+# Collectstatic ചെയ്യുമ്പോൾ ഫയലുകൾ ഒത്തുചേരുന്ന സ്ഥലം
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Vite build ചെയ്യുമ്പോൾ ഉണ്ടാകുന്ന assets ഫോൾഡറിലേക്ക് കൃത്യമായ പാത്ത് നൽകി
 STATICFILES_DIRS = [
-    BASE_DIR / 'dist',
+    BASE_DIR / 'dist' / 'assets',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+# WhiteNoise Storage settings
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
