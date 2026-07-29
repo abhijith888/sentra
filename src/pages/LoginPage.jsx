@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { customFetch } from '../api'; // Custom Fetch import ചെയ്തു
 import './Login.css';
 
 function LoginPage() {
@@ -26,10 +26,14 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const result = await login(email, password);
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.message || 'Invalid email or password.');
+      }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Invalid email or password.');
+      setError('An error occurred during sign in. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -57,30 +61,45 @@ function LoginPage() {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
 
-      // Register user via Django backend endpoint
-      await axios.post('http://127.0.0.1:8000/api/v1/register/', {
-        username: email,
-        email: email,
-        first_name: firstName,
-        last_name: lastName,
-        password: password,
-        role: 'User'
+      // Register user via customFetch (Relative Base URL)
+      const response = await customFetch('/api/v1/register/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: email,
+          email: email,
+          first_name: firstName,
+          last_name: lastName,
+          password: password,
+          role: 'User',
+        }),
       });
 
-      // Auto login after registration
-      await login(email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      const responseErrors = err.response?.data;
-      if (typeof responseErrors === 'object' && responseErrors !== null) {
-        const firstKey = Object.keys(responseErrors)[0];
-        const msg = Array.isArray(responseErrors[firstKey])
-          ? responseErrors[firstKey][0]
-          : responseErrors[firstKey];
-        setError(`${firstKey}: ${msg}`);
-      } else {
-        setError('Failed to create account. Please try again.');
+      if (!response.ok) {
+        const responseErrors = await response.json();
+        if (typeof responseErrors === 'object' && responseErrors !== null) {
+          const firstKey = Object.keys(responseErrors)[0];
+          const msg = Array.isArray(responseErrors[firstKey])
+            ? responseErrors[firstKey][0]
+            : responseErrors[firstKey];
+          setError(`${firstKey}: ${msg}`);
+        } else {
+          setError('Failed to create account. Please try again.');
+        }
+        return;
       }
+
+      // Auto login after successful registration
+      const loginResult = await login(email, password);
+      if (loginResult.success) {
+        navigate('/dashboard');
+      } else {
+        setError('Registered successfully, but automated login failed. Please sign in manually.');
+      }
+    } catch (err) {
+      setError('Failed to connect to the server. Please try again.');
     } finally {
       setLoading(false);
     }

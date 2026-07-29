@@ -7,6 +7,11 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Dynamic Base URL setup: Localhost-ൽ 'http://127.0.0.1:8000' എടുക്കും, Render-ൽ തനിയെ relative path എടുക്കും.
+  const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:8000'
+    : '';
+
   // Read stored credentials ONCE when the app mounts
   useEffect(() => {
     try {
@@ -39,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   // Login method accepts identifier (username or email) and password
   const login = async (identifier, password) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/token/', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/token/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +95,7 @@ export const AuthProvider = ({ children }) => {
   // Register method to persist new accounts directly to backend
   const register = async (userData) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/register/', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

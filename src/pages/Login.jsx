@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { customFetch } from '../api'; // 1. Centralized customFetch import ചെയ്തു
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -68,7 +69,7 @@ const Login = () => {
         role: 'User'
       };
 
-      // Call context register function (uses native fetch)
+      // Call context register function
       const result = register
         ? await register(registrationData)
         : await handleDirectRegister(registrationData);
@@ -85,9 +86,10 @@ const Login = () => {
     }
   };
 
-  // Fallback direct register with fetch if context method isn't loaded
+  // Fallback direct register with customFetch if context method isn't loaded
   const handleDirectRegister = async (userData) => {
-    const response = await fetch('http://127.0.0.1:8000/api/v1/register/', {
+    // 2. hardcoded URL മാറ്റി customFetch ഉപയോഗിച്ചു
+    const response = await customFetch('/api/v1/register/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)

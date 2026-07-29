@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import { customFetch } from '../api'; // Centralized customFetch import ചെയ്തു
 import './UsersPage.css';
 
 const initialUsers = [
@@ -45,11 +46,11 @@ function UsersPage({ currentUserRole = 'User' }) {
 
   const isAdmin = currentUserRole?.toLowerCase() === 'admin';
 
-  // Fetch Users from DRF Backend
+  // Fetch Users from DRF Backend using customFetch
   const fetchUsers = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/v1/users/', {
+      const response = await customFetch('/api/v1/users/', {
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -94,7 +95,7 @@ function UsersPage({ currentUserRole = 'User' }) {
     setEditRole(user.role || 'Viewer');
   };
 
-  // Submit Edit to Backend
+  // Submit Edit to Backend using customFetch
   const handleSaveEdit = async () => {
     if (!editingUser || !isAdmin) return;
 
@@ -111,7 +112,7 @@ function UsersPage({ currentUserRole = 'User' }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${editingUser.id}/`, {
+      const response = await customFetch(`/api/v1/users/${editingUser.id}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +127,7 @@ function UsersPage({ currentUserRole = 'User' }) {
           prev.map((u) => (u.id === editingUser.id ? normalizeUser(savedUser) : u))
         );
       } else {
-        // Fallback local update if request returns non-200
+        // Fallback local update
         setUsers((prev) =>
           prev.map((u) => (u.id === editingUser.id ? { ...u, name: editName, email: editEmail, role: editRole } : u))
         );
@@ -140,7 +141,7 @@ function UsersPage({ currentUserRole = 'User' }) {
     setEditingUser(null);
   };
 
-  // Handle Add User
+  // Handle Add User using customFetch
   const handleAddUser = async () => {
     if (!newFullName || !newEmail || !isAdmin) return;
 
@@ -158,7 +159,7 @@ function UsersPage({ currentUserRole = 'User' }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/v1/users/', {
+      const response = await customFetch('/api/v1/users/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -200,7 +201,7 @@ function UsersPage({ currentUserRole = 'User' }) {
     setShowModal(false);
   };
 
-  // Toggle Status with Backend Integration
+  // Toggle Status with Backend Integration via customFetch
   const toggleStatus = async (targetUser) => {
     if (!isAdmin) return;
     const nextIsActive = targetUser.status !== 'Active';
@@ -213,7 +214,7 @@ function UsersPage({ currentUserRole = 'User' }) {
 
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://127.0.0.1:8000/api/v1/users/${targetUser.id}/`, {
+      await customFetch(`/api/v1/users/${targetUser.id}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
